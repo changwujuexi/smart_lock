@@ -1,0 +1,19 @@
+spring:
+
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/smart_lock?characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: root
+#1995426
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+server:
+  tomcat:
+    port: 8080
+    remote-ip-header: x-forwarded-for
+    protocol-header: x-forwarded-proto
+    port-header: X-Forwarded-Port
+  use-forward-headers: true
