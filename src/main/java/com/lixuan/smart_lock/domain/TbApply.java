@@ -19,6 +19,7 @@ public class TbApply {
 
     Integer userId;
 
+    //0待处理，1已处理
     @Column(length = 1)
     String status;
 

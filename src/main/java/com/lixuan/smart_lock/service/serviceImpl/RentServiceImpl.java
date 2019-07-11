@@ -216,9 +216,15 @@ public class RentServiceImpl implements RentService {
                 tbRentRepository.save(tbRentBefore);
                 tbHouse.setUserId(tbRentBefore.getTenantId());
 
-                String Houses = tbUserBefore.getHouseId();
-                tbUserBefore.setHouseId(Houses+","+ tbHouse.getId());
+                String HousesBefore = tbUserBefore.getHouseId();
+                if(HousesBefore == null || HousesBefore.equals("")){
+                    tbUserBefore.setHouseId(tbHouse.getId()+"");
+                }else {
+                    tbUserBefore.setHouseId(HousesBefore +","+ tbHouse.getId());
+                }
                 tbUserRepository.save(tbUserBefore);
+
+                String Houses = tbUser.getHouseId();
 
                 StringBuffer newHouses = new StringBuffer();
                 String[] HousesString = Houses.split(",");
@@ -258,15 +264,23 @@ public class RentServiceImpl implements RentService {
     @Override
     public Integer applyHouse(Integer userId, Integer houseId) {
 
-        TbApply tbApply = new TbApply();
-        tbApply.setHouseId(houseId);
-        tbApply.setUserId(userId);
-        tbApply.setStatus("0");
-        tbApply.setAddr(tbHouseRepository.findById(houseId).get().getAddr());
-        tbApply.setName(tbUserRepository.findById(userId).get().getName());
-        tbApply.setTel(tbUserRepository.findById(userId).get().getTel());
-        tbApplyRepository.save(tbApply);
-        return SUCCESS;
+        try {
+            if (tbApplyRepository.findByUserIdAndHouseIdAndStatus(userId, houseId, "0") != null) {
+                return NO_PERMISSION;
+            }
+            TbApply tbApply = new TbApply();
+            tbApply.setHouseId(houseId);
+            tbApply.setUserId(userId);
+            tbApply.setStatus("0");
+            tbApply.setAddr(tbHouseRepository.findById(houseId).get().getAddr());
+            tbApply.setName(tbUserRepository.findById(userId).get().getName());
+            tbApply.setTel(tbUserRepository.findById(userId).get().getTel());
+            tbApplyRepository.save(tbApply);
+            return SUCCESS;
+        } catch (Exception e){
+            return ERROR;
+        }
+
     }
 
     @Override

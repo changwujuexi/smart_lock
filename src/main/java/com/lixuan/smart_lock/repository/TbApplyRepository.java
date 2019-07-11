@@ -8,4 +8,5 @@ import java.util.List;
 public interface TbApplyRepository extends JpaRepository<TbApply, Integer> {
     List<TbApply> findByHouseIdAndStatus(Integer houseId, String status);
     List<TbApply> findByUserIdAndStatus(Integer userId, String status);
+    List<TbApply> findByUserIdAndHouseIdAndStatus(Integer userId, Integer houseId, String status);
 }
