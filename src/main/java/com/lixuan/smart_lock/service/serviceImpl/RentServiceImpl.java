@@ -47,7 +47,7 @@ public class RentServiceImpl implements RentService {
         List<TbApply> tbApplies = tbApplyRepository.findByHouseIdAndStatus(houseId, "0");
 
         try {
-            if(tbRent1.getId() != null){
+            if(tbRent1 != null){
                 throw new Exception();
             }
             tbRent.setPower(power);
@@ -67,7 +67,7 @@ public class RentServiceImpl implements RentService {
                 tbApplyRepository.save(tbApply);
             }
 
-            if(tbUser.getHouseId().equals("")){
+            if(tbUser.getHouseId().equals("")||tbUser.getHouseId() == null){
                 tbUser.setHouseId(houseId+"");
             }else {
                 tbUser.setHouseId(tbUser.getHouseId()+","+houseId);
@@ -94,27 +94,27 @@ public class RentServiceImpl implements RentService {
         List<TbApply> tbApplies = tbApplyRepository.findByHouseIdAndStatus(houseId, "0");
 
         String keys = tbHouse.getKeyNumber();
-        boolean lable0 = keys.contains("0");
+        boolean lable0 = keys.contains("2");
         boolean lable1 = keys.contains("1");
 
         String power = tbRentBefore.getPower();
-        if(power.equals("0")){
+        if(power.equals("2")){
             return NO_PERMISSION;
         }if(power.equals("1")){
             if(!lable0){
                 return NO_PERMISSION;
             }
-            tbRent.setPower("0");
-        }if(power.equals("2")){
+            tbRent.setPower("2");
+        }if(power.equals("0")){
             if(!lable0&!lable1){
                 return NO_PERMISSION;
             }
             tbRent.setPower("1");
         }
 
-        if(tbRentBefore.getLastId() == -1){
+        if(tbRentBefore.getSublet().equals("0")){
             tbRent.setSublet("1");
-        }else if(tbRentRepository.findById(tbRentBefore.getLastId()).get().getLastId() == -1){
+        }else if(tbRentBefore.getSublet().equals("1")){
             tbRent.setSublet("2");
         }else{
             return ERROR;
@@ -139,27 +139,38 @@ public class RentServiceImpl implements RentService {
             tbApplyRepository.save(tbApply);
         }
 
-//        for (TbApply tbApply:tbApplies) {
-//            tbApply.setStatus("1");
-//            tbApplyRepository.save(tbApply);
-//        }
 
-        if(tbUser.getHouseId().equals("")){
+        if(tbUser.getHouseId().equals("")||tbUser.getHouseId() == null){
             tbUser.setHouseId(houseId+"");
         }else {
             tbUser.setHouseId(tbUser.getHouseId()+","+houseId);
         }
 
+
+        //去除转租房东记录中的房屋
         String houseIdBefore = tbUserBefore.getHouseId();
-        houseIdBefore = houseIdBefore.replace(houseId+"","");
+
+        StringBuffer newHouses = new StringBuffer();
+        String[] HousesString = houseIdBefore.split(",");
+        for (String house: HousesString) {
+            if (house.equals(tbHouse.getId()+"")) {
+                continue;
+            }
+            newHouses.append(house);
+            newHouses.append(",");
+        }
+        houseIdBefore = newHouses.substring(0);
         houseIdBefore = houseIdBefore.replace(",,",",");
-        if(houseIdBefore.startsWith(",")){
-            houseIdBefore = houseIdBefore.substring(1,houseIdBefore.length());
-        }if(houseIdBefore.endsWith(",")){
+        if (houseIdBefore.startsWith(",")){
+            houseIdBefore = houseIdBefore.substring(1);
+        }
+        if (houseIdBefore.endsWith(",")){
             houseIdBefore = houseIdBefore.substring(0,houseIdBefore.length()-1);
         }
-
         tbUserBefore.setHouseId(houseIdBefore);
+
+
+
 
         tbUserRepository.save(tbUser);
         tbUserRepository.save(tbUserBefore);
@@ -170,20 +181,72 @@ public class RentServiceImpl implements RentService {
     @Override
     public Integer endRent(Integer id) {
         try {
-            TbRent tbRent = tbRentRepository.findById(id).get();
+            TbRent tbRent = tbRentRepository.findByHouseIdAndStatus(id,"1");
             TbHouse tbHouse = tbHouseRepository.findById(tbRent.getHouseId()).get();
+            TbUser tbUser = tbUserRepository.findById(tbRent.getTenantId()).get();
             if(tbRent.getLastId() == -1){
                 tbRent.setStatus("0");
                 tbHouse.setUserId(-1);
+                String Houses = tbUser.getHouseId();
+                StringBuffer newHouses = new StringBuffer();
+                String[] HousesString = Houses.split(",");
+                for (String house: HousesString) {
+                    if (house.equals(tbHouse.getId()+"")) {
+                        continue;
+                    }
+                    newHouses.append(house);
+                    newHouses.append(",");
+                }
+                Houses = newHouses.substring(0);
+                Houses = Houses.replace(",,",",");
+                if (Houses.startsWith(",")){
+                    Houses = Houses.substring(1);
+                }
+                if (Houses.endsWith(",")){
+                    Houses = Houses.substring(0,Houses.length()-1);
+                }
+                tbUser.setHouseId(Houses);
+
             }else {
                 TbRent tbRentBefore = tbRentRepository.findById(tbRent.getLastId()).get();
+                TbUser tbUserBefore = tbUserRepository.findById(tbRentBefore.getTenantId()).get();
+
                 tbRent.setStatus("0");
                 tbRentBefore.setStatus("1");
                 tbRentRepository.save(tbRentBefore);
                 tbHouse.setUserId(tbRentBefore.getTenantId());
+
+                String Houses = tbUserBefore.getHouseId();
+                tbUserBefore.setHouseId(Houses+","+ tbHouse.getId());
+                tbUserRepository.save(tbUserBefore);
+
+                StringBuffer newHouses = new StringBuffer();
+                String[] HousesString = Houses.split(",");
+                for (String house: HousesString) {
+                    if (house.equals(tbHouse.getId()+"")) {
+                        continue;
+                    }
+                    newHouses.append(house);
+                    newHouses.append(",");
+                }
+                Houses = newHouses.substring(0);
+                Houses = Houses.replace(",,",",");
+                if (Houses.startsWith(",")){
+                    Houses = Houses.substring(1);
+                }
+                if (Houses.endsWith(",")){
+                    Houses = Houses.substring(0,Houses.length()-1);
+                }
+                tbUser.setHouseId(Houses);
+
+
             }
+
+            tbHouse.setRent("0");
+
             tbRentRepository.save(tbRent);
             tbHouseRepository.save(tbHouse);
+            tbUserRepository.save(tbUser);
 
             return SUCCESS;
 
@@ -207,16 +270,18 @@ public class RentServiceImpl implements RentService {
     }
 
     @Override
-    public String getHousePower(Integer userId) {
+    public String[][] getHousePower(Integer userId) {
 
         String[] houseIds = tbUserRepository.findById(userId).get().getHouseId().split(",");
 
-        Map<String, String> housePowers = new HashMap<>();
-        for (String houseId: houseIds) {
-            housePowers.put(houseId,tbRentRepository.findByHouseIdAndStatus(Integer.parseInt(houseId),"1").getPower());
+        String[][] housePowers = new String[houseIds.length][2];
+
+        for (int i =0; i<houseIds.length; i++) {
+            housePowers[i][0] = houseIds[i];
+            housePowers[i][1] = tbRentRepository.findByHouseIdAndStatus(Integer.parseInt(houseIds[i]),"1").getPower();
         }
 
-        String housePowerKeyValues = JSONObject.toJSONString(housePowers);
-        return housePowerKeyValues;
+//        String housePowerKeyValues = JSONObject.toJSONString(housePowers);
+        return housePowers;
     }
 }

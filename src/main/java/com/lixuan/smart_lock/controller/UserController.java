@@ -113,6 +113,18 @@ public class UserController {
         return userInfoService.getHouseList(id);
     }
 
+    //获得用户信息
+    @GetMapping(value = "/users/info")
+    public TbUser getUserInfo(@RequestParam("id") Integer id){
+        return userInfoService.getUserInfo(id);
+    }
+
+    //获得所有租户的信息
+    @GetMapping(value = "/users/tenantinfo")
+    public String getTenantInfo(@RequestParam("id") Integer id) {
+        return userInfoService.getTenantInfo(id);
+    }
+
 
 
 }

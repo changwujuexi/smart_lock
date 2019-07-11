@@ -2,6 +2,8 @@ package com.lixuan.smart_lock.service;
 
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Map;
+
 @Validated
 public interface RentService {
 
@@ -13,6 +15,6 @@ public interface RentService {
 
     Integer applyHouse(Integer userId, Integer houseId);
 
-    String getHousePower(Integer userId);
+    String[][] getHousePower(Integer userId);
 
 }

@@ -1,5 +1,7 @@
 package com.lixuan.smart_lock.service.serviceImpl;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.lixuan.smart_lock.domain.TbApply;
 import com.lixuan.smart_lock.domain.TbHouse;
 import com.lixuan.smart_lock.domain.TbUser;
@@ -16,6 +18,7 @@ import java.util.*;
 
 @Service
 public class UserInfoServiceImpl implements UserInfoService {
+
 
     @Autowired
     TbUserRepository tbUserRepository;
@@ -147,5 +150,30 @@ public class UserInfoServiceImpl implements UserInfoService {
             tbHouses.add(tbHouseRepository.findById(Integer.parseInt(house)).get());
         }
         return tbHouses;
+    }
+
+    @Override
+    public TbUser getUserInfo(Integer userId) {
+        return tbUserRepository.findById(userId).get();
+    }
+
+    @Override
+    public String getTenantInfo(Integer userId) {
+
+        Map<Integer, TbUser> tenants = new HashMap<>();
+        String[] houses = tbUserRepository.findById(userId).get().getHouseId().split(",");
+        for (String house:houses) {
+
+            if(tbRentRepository.findByHouseIdAndStatus(Integer.parseInt(house),"1")!=null) {
+                tenants.put(Integer.parseInt(house), tbUserRepository.findById(tbRentRepository.findByHouseIdAndStatus(Integer.parseInt(house), "1").getTenantId()).get());
+            }else {
+                tenants.put(Integer.parseInt(house), null);
+            }
+        }
+
+        Gson gson = new Gson();
+        String tenantsJson = gson.toJson(tenants);
+
+        return tenantsJson;
     }
 }

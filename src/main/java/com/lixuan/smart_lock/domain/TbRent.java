@@ -25,7 +25,7 @@ public class TbRent {
     @Column(length = 1)
     String status;
 
-    //0，1，2权限等级
+    //0，1，2权限等级vip,close,normal
     @Column(length = 1)
     String power;
 

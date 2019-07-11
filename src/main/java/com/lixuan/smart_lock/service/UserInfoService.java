@@ -8,6 +8,7 @@ import com.lixuan.smart_lock.pojo.UserInfo;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.Map;
 
 @Validated
 public interface UserInfoService {
@@ -27,5 +28,9 @@ public interface UserInfoService {
     List<TbHouse> getHouseList(Integer userId);
 
     List<TbApply> getSubletApplies(Integer userId);
+
+    TbUser getUserInfo(Integer userId);
+
+    String getTenantInfo(Integer userId);
 
 }

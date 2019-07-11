@@ -1,5 +1,6 @@
 package com.lixuan.smart_lock.controller;
 
+import com.lixuan.smart_lock.domain.TbUser;
 import com.lixuan.smart_lock.pojo.UserInfo;
 import com.lixuan.smart_lock.repository.TbHouseRepository;
 import com.lixuan.smart_lock.repository.TbRentRepository;
@@ -9,6 +10,8 @@ import com.lixuan.smart_lock.service.RentService;
 import com.lixuan.smart_lock.service.UserInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 public class RentController {
@@ -49,9 +52,9 @@ public class RentController {
     }
 
     @PostMapping(value = "/endrent")
-    public Integer houseEndRent(@RequestParam("rentid") Integer rentId) {
+    public Integer houseEndRent(@RequestParam("houseid") Integer houseId) {
 
-        int code = rentService.endRent(rentId);
+        int code = rentService.endRent(houseId);
         return code;
     }
 
@@ -63,8 +66,10 @@ public class RentController {
     }
 
     @GetMapping(value = "/power")
-    public String housePower(@RequestParam("userid") Integer userId){
+    public String[][] housePower(@RequestParam("userid") Integer userId){
         return rentService.getHousePower(userId);
     }
+
+
 
 }

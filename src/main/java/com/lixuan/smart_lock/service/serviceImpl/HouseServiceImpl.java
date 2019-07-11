@@ -44,7 +44,7 @@ public class HouseServiceImpl implements HouseService {
         tbHouse.setRent("0");
         tbHouseRepository.save(tbHouse);
         TbUser tbUser = tbUserRepository.findById(ownerId).get();
-        if(tbUser.getHouseId().equals("")){
+        if(tbUser.getHouseId().equals("")||tbUser.getHouseId() == null){
             tbUser.setHouseId(""+tbHouse.getId());
             tbUserRepository.save(tbUser);
         }else {
@@ -71,20 +71,40 @@ public class HouseServiceImpl implements HouseService {
 
     @Override
     public Integer deleteHouse(Integer id) {
-        try {
-            tbHouseRepository.delete(tbHouseRepository.findById(id).get());
-            TbUser tbUser = tbUserRepository.findById(tbHouseRepository.findById(id).get().getOwnerId()).get();
-            String newHouseId = tbUser.getHouseId().replace(id.toString(),"");
 
-            newHouseId = newHouseId.replace(",,", ",");
-            if(newHouseId.startsWith(",")){
-                newHouseId = newHouseId.substring(1,newHouseId.length());
+        if(tbRentRepository.findByHouseIdAndStatus(id,"1")!=null){
+            return 401;
+        }
+
+        try {
+
+            TbUser tbUser = tbUserRepository.findById(tbHouseRepository.findById(id).get().getOwnerId()).get();
+            String Houses = tbUser.getHouseId();
+
+            StringBuffer newHouses = new StringBuffer();
+            String[] HousesString = Houses.split(",");
+            for (String house: HousesString) {
+                if (house.equals(id+"")) {
+                    continue;
+                }
+                newHouses.append(house);
+                newHouses.append(",");
             }
-            if(newHouseId.endsWith(",")){
-                newHouseId = newHouseId.substring(0,newHouseId.length()-1);
+            Houses = newHouses.substring(0);
+            Houses = Houses.replace(",,",",");
+            if (Houses.startsWith(",")){
+                Houses = Houses.substring(1);
             }
-            tbUser.setHouseId(newHouseId);
+            if (Houses.endsWith(",")){
+                Houses = Houses.substring(0,Houses.length()-1);
+            }
+            tbUser.setHouseId(Houses);
+
             tbUserRepository.save(tbUser);
+
+
+
+            tbHouseRepository.delete(tbHouseRepository.findById(id).get());
             return SUCCESS;
         }catch (Exception e){
             return ERROR;
@@ -131,6 +151,11 @@ public class HouseServiceImpl implements HouseService {
 
     @Override
     public Integer allowRent(Integer id) {
+        if(tbRentRepository.findByHouseIdAndStatus(id,"1") != null){
+            if (tbRentRepository.findByHouseIdAndStatus(id,"1").getPower().equals("2")){
+                return 401;
+            }
+        }
         TbHouse tbHouse = tbHouseRepository.findById(id).get();
         tbHouse.setRent("0");
         tbHouseRepository.save(tbHouse);
