@@ -265,7 +265,7 @@ public class RentServiceImpl implements RentService {
     public Integer applyHouse(Integer userId, Integer houseId) {
 
         try {
-            if (tbApplyRepository.findByUserIdAndHouseIdAndStatus(userId, houseId, "0") != null) {
+            if (!tbApplyRepository.findByUserIdAndHouseIdAndStatus(userId, houseId, "0").isEmpty()) {
                 return NO_PERMISSION;
             }
             TbApply tbApply = new TbApply();
